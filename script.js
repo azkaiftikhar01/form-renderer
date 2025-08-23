@@ -180,6 +180,12 @@ class JSONFormRenderer {
                     ${field.default ? `value="${field.default}"` : ''} />`;
                 break;
 
+            case 'email':
+                html += `<input type="email" id="${fieldId}" name="${field.fieldName}" class="form-input ${requiredClass}" 
+                    ${field.required ? 'required' : ''} 
+                    ${field.default ? `value="${field.default}"` : ''} />`;
+                break;
+
             case 'textarea':
                 html += `<textarea id="${fieldId}" name="${field.fieldName}" class="form-textarea ${requiredClass}" 
                     ${field.required ? 'required' : ''}>${field.default || ''}</textarea>`;
@@ -222,6 +228,21 @@ class JSONFormRenderer {
                     });
                 }
                 html += '</div>';
+                break;
+
+            case 'dropdown':
+                html += `<select id="${fieldId}" name="${field.fieldName}" class="form-select ${requiredClass}" 
+                    ${field.required ? 'required' : ''}>`;
+                if (field.options && Array.isArray(field.options)) {
+                    if (field.default) {
+                        html += `<option value="" disabled ${!field.default ? 'selected' : ''}>Select an option</option>`;
+                    }
+                    field.options.forEach((option, optionIndex) => {
+                        const isSelected = field.default === option ? 'selected' : '';
+                        html += `<option value="${option}" ${isSelected}>${option}</option>`;
+                    });
+                }
+                html += '</select>';
                 break;
 
             case 'info':
@@ -347,6 +368,11 @@ class JSONFormRenderer {
                     // Validate multipleCheckbox options
                     if (field.fieldType === 'multipleCheckbox' && (!field.options || !Array.isArray(field.options))) {
                         results.warnings.push(`MultipleCheckbox field "${field.fieldName}" missing or invalid options array`);
+                    }
+
+                    // Validate dropdown options
+                    if (field.fieldType === 'dropdown' && (!field.options || !Array.isArray(field.options))) {
+                        results.warnings.push(`Dropdown field "${field.fieldName}" missing or invalid options array`);
                     }
                 });
             }

@@ -7,11 +7,13 @@ A comprehensive web-based tool for testing and validating JSON form structures. 
 ### 🎨 **Visual Form Rendering**
 - **All Field Types Supported:**
   - `text` - Text input fields
+  - `email` - Email input fields with validation
   - `textarea` - Multi-line text areas
   - `date` - Date picker inputs
   - `signature` - Digital signature placeholders
   - `checkbox` - Single checkbox fields
   - `multipleCheckbox` - Multiple choice checkboxes
+  - `dropdown` - Select dropdown menus
   - `info` - Information/display-only fields
 
 ### 🔍 **Form Validation**
@@ -105,6 +107,27 @@ A comprehensive web-based tool for testing and validating JSON form structures. 
   "label": "Candidate Name",
   "fieldType": "text",
   "required": true
+}
+```
+
+### Email Input
+```json
+{
+  "fieldName": "candidateEmail",
+  "label": "Email Address",
+  "fieldType": "email",
+  "required": true
+}
+```
+
+### Dropdown Selection
+```json
+{
+  "fieldName": "qualificationLevel",
+  "label": "Qualification Level",
+  "fieldType": "dropdown",
+  "required": true,
+  "options": ["Certificate I", "Certificate II", "Certificate III", "Certificate IV", "Diploma", "Advanced Diploma"]
 }
 ```
 

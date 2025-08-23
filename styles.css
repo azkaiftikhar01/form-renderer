@@ -237,11 +237,13 @@ body {
 }
 
 .legend-color.text { background: linear-gradient(135deg, #3498db, #2980b9); }
+.legend-color.email { background: linear-gradient(135deg, #e67e22, #d35400); }
 .legend-color.textarea { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
 .legend-color.date { background: linear-gradient(135deg, #e74c3c, #c0392b); }
 .legend-color.signature { background: linear-gradient(135deg, #f39c12, #e67e22); }
 .legend-color.checkbox { background: linear-gradient(135deg, #2ecc71, #27ae60); }
 .legend-color.multipleCheckbox { background: linear-gradient(135deg, #1abc9c, #16a085); }
+.legend-color.dropdown { background: linear-gradient(135deg, #34495e, #2c3e50); }
 .legend-color.info { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
 
 /* Form Container */
@@ -357,11 +359,13 @@ body {
 }
 
 .field-type-badge.text { background: #3498db; color: white; }
+.field-type-badge.email { background: #e67e22; color: white; }
 .field-type-badge.textarea { background: #9b59b6; color: white; }
 .field-type-badge.date { background: #e74c3c; color: white; }
 .field-type-badge.signature { background: #f39c12; color: white; }
 .field-type-badge.checkbox { background: #2ecc71; color: white; }
 .field-type-badge.multipleCheckbox { background: #1abc9c; color: white; }
+.field-type-badge.dropdown { background: #34495e; color: white; }
 .field-type-badge.info { background: #95a5a6; color: white; }
 
 /* Form Inputs */
