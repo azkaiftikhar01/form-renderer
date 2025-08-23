@@ -14,6 +14,8 @@ A comprehensive web-based tool for testing and validating JSON form structures. 
   - `checkbox` - Single checkbox fields
   - `multipleCheckbox` - Multiple choice checkboxes
   - `dropdown` - Select dropdown menus
+  - `radio` - Radio button groups for single selection
+  - `table` - Structured table display with optional editable cells
   - `info` - Information/display-only fields
 
 ### 🔍 **Form Validation**
@@ -87,7 +89,7 @@ A comprehensive web-based tool for testing and validating JSON form structures. 
         {
           "fieldName": "field_id",
           "label": "Field Label",
-          "fieldType": "text|textarea|date|signature|checkbox|multipleCheckbox|info",
+          "fieldType": "text|textarea|date|signature|checkbox|multipleCheckbox|dropdown|email|radio|table|info",
           "required": true|false,
           "options": ["option1", "option2"], // for multipleCheckbox
           "default": "default_value" // optional
@@ -128,6 +130,32 @@ A comprehensive web-based tool for testing and validating JSON form structures. 
   "fieldType": "dropdown",
   "required": true,
   "options": ["Certificate I", "Certificate II", "Certificate III", "Certificate IV", "Diploma", "Advanced Diploma"]
+}
+```
+
+### Radio Button Group
+```json
+{
+  "fieldName": "unitSelection",
+  "label": "Select Unit Status",
+  "fieldType": "radio",
+  "required": true,
+  "options": ["Selected", "Not Selected", "Under Review"]
+}
+```
+
+### Table Field
+```json
+{
+  "fieldName": "unitSummary",
+  "label": "Unit Summary Table",
+  "fieldType": "table",
+  "required": false,
+  "headers": ["Unit Code", "Unit Title", "Status"],
+  "rows": [
+    ["SHBBCCS005", "Advise on beauty products and services", "Selected"],
+    ["SHBBNLS007", "Provide manicure and pedicare services", "Selected"]
+  ]
 }
 ```
 

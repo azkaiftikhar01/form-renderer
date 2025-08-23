@@ -206,13 +206,27 @@ class JSONFormRenderer {
                 break;
 
             case 'checkbox':
-                html += `<div class="checkbox-group">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="${fieldId}" name="${field.fieldName}" class="checkbox-input" 
-                            ${field.required ? 'required' : ''} />
-                        <label for="${fieldId}" class="checkbox-label">Yes/Enabled</label>
-                    </div>
-                </div>`;
+                // Handle checkbox with options (Yes/No style) or single checkbox
+                if (field.options && field.options.length > 0) {
+                    html += `<div class="checkbox-group">`;
+                    field.options.forEach((option, index) => {
+                        const optionId = `${fieldId}_${index}`;
+                        const isChecked = field.default === option ? 'checked' : '';
+                        html += `<div class="checkbox-item">
+                            <input type="checkbox" id="${optionId}" name="${field.fieldName}" value="${option}" class="checkbox-input" ${isChecked} />
+                            <label for="${optionId}" class="checkbox-label">${option}</label>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `<div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="${fieldId}" name="${field.fieldName}" class="checkbox-input" 
+                                ${field.required ? 'required' : ''} />
+                            <label for="${fieldId}" class="checkbox-label">Yes/Enabled</label>
+                        </div>
+                    </div>`;
+                }
                 break;
 
             case 'multipleCheckbox':
@@ -268,6 +282,55 @@ class JSONFormRenderer {
                 html += '</select>';
                 break;
 
+            case 'radio':
+                // Radio button group for single selection
+                if (field.options && field.options.length > 0) {
+                    html += `<div class="radio-group">`;
+                    field.options.forEach((option, index) => {
+                        const optionId = `${fieldId}_${index}`;
+                        const isChecked = field.default === option ? 'checked' : '';
+                        html += `<div class="radio-item">
+                            <input type="radio" id="${optionId}" name="${field.fieldName}" value="${option}" class="radio-input" ${isChecked} ${field.required ? 'required' : ''} />
+                            <label for="${optionId}" class="radio-label">${option}</label>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+                break;
+
+            case 'table':
+                // Render table structure
+                if (field.tableData || (field.headers && field.rows)) {
+                    html += `<div class="table-container">
+                        <table class="form-table">
+                            <thead>
+                                <tr>`;
+                    if (field.headers) {
+                        field.headers.forEach(header => {
+                            html += `<th>${header}</th>`;
+                        });
+                    }
+                    html += `</tr></thead><tbody>`;
+                    
+                    if (field.rows) {
+                        field.rows.forEach((row, rowIndex) => {
+                            html += `<tr>`;
+                            row.forEach((cell, cellIndex) => {
+                                if (field.editableColumns && field.editableColumns.includes(cellIndex)) {
+                                    html += `<td><input type="text" name="${field.fieldName}_row${rowIndex}_col${cellIndex}" value="${cell}" class="table-input" /></td>`;
+                                } else {
+                                    html += `<td>${cell}</td>`;
+                                }
+                            });
+                            html += `</tr>`;
+                        });
+                    }
+                    html += `</tbody></table></div>`;
+                } else {
+                    html += `<div class="table-placeholder">Table structure not defined</div>`;
+                }
+                break;
+
             case 'info':
                 html = `<div class="form-field info" data-field-type="info" style="--field-index: ${fieldIndex}">
                     <div class="info-field">
@@ -293,7 +356,7 @@ class JSONFormRenderer {
 
     setupFormInteractions() {
         // Add change listeners to all form inputs
-        const formInputs = document.querySelectorAll('.form-input, .form-textarea, .checkbox-input');
+        const formInputs = document.querySelectorAll('.form-input, .form-textarea, .checkbox-input, .radio-input, .table-input');
         formInputs.forEach(input => {
             input.addEventListener('change', (e) => this.updateFormValue(e));
             input.addEventListener('input', (e) => this.updateFormValue(e));
@@ -329,6 +392,9 @@ class JSONFormRenderer {
             } else {
                 this.formValues[fieldName] = this.formValues[fieldName].filter(val => val !== input.value);
             }
+        } else if (input.type === 'radio') {
+            // Radio buttons - single selection
+            this.formValues[fieldName] = input.value;
         } else {
             this.formValues[fieldName] = input.value;
         }
@@ -393,10 +459,27 @@ class JSONFormRenderer {
                         results.warnings.push(`MultipleCheckbox field "${field.fieldName}" missing or invalid options array`);
                     }
 
+                    // Validate checkbox options (if they have options)
+                    if (field.fieldType === 'checkbox' && field.options && (!Array.isArray(field.options) || field.options.length === 0)) {
+                        results.warnings.push(`Checkbox field "${field.fieldName}" has invalid options array`);
+                    }
+
                     // Validate dropdown options
                     if (field.fieldType === 'dropdown' && (!field.options || !Array.isArray(field.options))) {
                         if (!field.categories || typeof field.categories !== 'object') {
                             results.warnings.push(`Dropdown field "${field.fieldName}" missing or invalid options array or categories object`);
+                        }
+                    }
+
+                    // Validate radio button options
+                    if (field.fieldType === 'radio' && (!field.options || !Array.isArray(field.options) || field.options.length === 0)) {
+                        results.warnings.push(`Radio field "${field.fieldName}" missing or empty options array`);
+                    }
+
+                    // Validate table structure
+                    if (field.fieldType === 'table') {
+                        if (!field.tableData && (!field.headers || !field.rows)) {
+                            results.warnings.push(`Table field "${field.fieldName}" missing table structure (headers, rows, or tableData)`);
                         }
                     }
                 });

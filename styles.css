@@ -244,6 +244,8 @@ body {
 .legend-color.checkbox { background: linear-gradient(135deg, #2ecc71, #27ae60); }
 .legend-color.multipleCheckbox { background: linear-gradient(135deg, #1abc9c, #16a085); }
 .legend-color.dropdown { background: linear-gradient(135deg, #34495e, #2c3e50); }
+.legend-color.radio { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+.legend-color.table { background: linear-gradient(135deg, #e67e22, #d35400); }
 .legend-color.info { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
 
 /* Form Container */
@@ -420,6 +422,87 @@ body {
     color: var(--text-primary);
     cursor: pointer;
     user-select: none;
+}
+
+/* Radio Button Group */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.radio-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: var(--transition);
+}
+
+.radio-item:hover {
+    background: var(--bg-light);
+}
+
+.radio-input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+}
+
+.radio-label {
+    color: var(--text-primary);
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Table Field */
+.table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+.form-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.form-table th,
+.form-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.form-table th {
+    background: var(--bg-light);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.form-table tr:hover {
+    background: var(--bg-light);
+}
+
+.table-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.table-placeholder {
+    background: var(--bg-light);
+    border: 1px dashed var(--border-light);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
 }
 
 /* Signature Field */
