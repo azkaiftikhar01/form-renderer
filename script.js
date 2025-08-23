@@ -233,15 +233,38 @@ class JSONFormRenderer {
             case 'dropdown':
                 html += `<select id="${fieldId}" name="${field.fieldName}" class="form-select ${requiredClass}" 
                     ${field.required ? 'required' : ''}>`;
+                
+                // Handle both options array and categories object
+                let dropdownOptions = [];
+                
                 if (field.options && Array.isArray(field.options)) {
-                    if (field.default) {
-                        html += `<option value="" disabled ${!field.default ? 'selected' : ''}>Select an option</option>`;
-                    }
-                    field.options.forEach((option, optionIndex) => {
+                    // Direct options array
+                    dropdownOptions = field.options;
+                } else if (field.categories && typeof field.categories === 'object') {
+                    // Categories object - extract all options from nested structure
+                    Object.values(field.categories).forEach(category => {
+                        if (Array.isArray(category)) {
+                            category.forEach(item => {
+                                if (item.code && item.name) {
+                                    dropdownOptions.push(`${item.code} - ${item.name}`);
+                                } else if (typeof item === 'string') {
+                                    dropdownOptions.push(item);
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                if (dropdownOptions.length > 0) {
+                    html += `<option value="">Select an option</option>`;
+                    dropdownOptions.forEach((option, optionIndex) => {
                         const isSelected = field.default === option ? 'selected' : '';
                         html += `<option value="${option}" ${isSelected}>${option}</option>`;
                     });
+                } else {
+                    html += `<option value="">No options available</option>`;
                 }
+                
                 html += '</select>';
                 break;
 
@@ -372,7 +395,9 @@ class JSONFormRenderer {
 
                     // Validate dropdown options
                     if (field.fieldType === 'dropdown' && (!field.options || !Array.isArray(field.options))) {
-                        results.warnings.push(`Dropdown field "${field.fieldName}" missing or invalid options array`);
+                        if (!field.categories || typeof field.categories !== 'object') {
+                            results.warnings.push(`Dropdown field "${field.fieldName}" missing or invalid options array or categories object`);
+                        }
                     }
                 });
             }
