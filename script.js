@@ -2,6 +2,7 @@ class JSONFormRenderer {
     constructor() {
         this.currentFormData = null;
         this.formValues = {};
+        this.expandedSections = {};
         this.init();
     }
 
@@ -22,6 +23,16 @@ class JSONFormRenderer {
 
         // Validation panel close
         document.getElementById('closeValidation').addEventListener('click', () => this.closeValidationPanel());
+
+        // Section bulk controls
+        const expandBtn = document.getElementById('expandAllSections');
+        const collapseBtn = document.getElementById('collapseAllSections');
+        if (expandBtn) {
+            expandBtn.addEventListener('click', () => this.toggleAllSections(true));
+        }
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', () => this.toggleAllSections(false));
+        }
 
         // Drag and drop for file upload
         const fileLabel = document.querySelector('.file-label');
@@ -94,17 +105,21 @@ class JSONFormRenderer {
     renderForm(jsonData) {
         this.currentFormData = jsonData;
         this.formValues = {};
+        this.initializeSectionState(jsonData);
 
         // Update form information
         this.updateFormInfo(jsonData);
 
         // Hide welcome message and show form
-        document.getElementById('welcomeMessage').style.display = 'none';
-        document.getElementById('renderedForm').style.display = 'block';
-        document.getElementById('formInfo').style.display = 'block';
+        const welcome = document.getElementById('welcomeMessage');
+        const formInfo = document.getElementById('formInfo');
+        const formContainer = document.getElementById('renderedForm');
+        if (welcome) welcome.style.display = 'none';
+        if (formInfo) formInfo.style.display = 'block';
+        formContainer.style.display = 'block';
+        formContainer.classList.add('active');
 
         // Render the form
-        const formContainer = document.getElementById('renderedForm');
         formContainer.innerHTML = this.generateFormHTML(jsonData);
 
         // Setup form interactions
@@ -133,31 +148,99 @@ class JSONFormRenderer {
     }
 
     generateFormHTML(jsonData) {
-        let html = `<div class="form-header">
-            <h1>${jsonData.name || 'Untitled Form'}</h1>
-            <p>${jsonData.description || 'No description available'}</p>
-        </div>`;
+        const sections =
+            jsonData.formStructure && jsonData.formStructure.length > 0
+                ? jsonData.formStructure
+                      .map((section, index) => this.generateSectionHTML(section, index))
+                      .join('')
+                : `<div class="info-field">No form structure defined in JSON.</div>`;
 
-        if (jsonData.formStructure) {
-            jsonData.formStructure.forEach((section, sectionIndex) => {
-                html += this.generateSectionHTML(section, sectionIndex);
-            });
-        }
+        return `
+            <div class="ufi-form-shell">
+                <div class="ufi-hero-card">
+                    <div class="ufi-hero-icon">
+                        <i class="fas fa-file-text"></i>
+                    </div>
+                    <div>
+                        <p class="panel-eyebrow">${jsonData.filledBy || 'Form Preview'}</p>
+                        <h1>${jsonData.name || 'Untitled Form'}</h1>
+                        <p class="text-muted">${jsonData.description || 'No description available'}</p>
+                    </div>
+                    <div>
+                        <span class="badge">Step ${jsonData.stepNumber || '-'}</span>
+                    </div>
+                </div>
 
-        return html;
+                <div class="ufi-form-card">
+                    <div class="ufi-form-hero">
+                        <p class="panel-eyebrow">${jsonData.certificationId?.name || 'Assessment'}</p>
+                        <h2>${jsonData.name || 'Untitled Form'}</h2>
+                        <p>${jsonData.description || 'Use this preview to validate layout, validations, and field configuration.'}</p>
+                    </div>
+
+                    <div class="ufi-form-content">
+                        ${sections}
+                    </div>
+
+                    <div class="ufi-form-actions">
+                        <button type="button" class="ufi-secondary-btn" data-action="preview-only">
+                            <i class="fas fa-save"></i>
+                            Save Draft
+                        </button>
+                        <button type="button" class="ufi-primary-btn" data-action="preview-only">
+                            <i class="fas fa-paper-plane"></i>
+                            Submit Form
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     generateSectionHTML(section, sectionIndex) {
-        let html = `<div class="form-section" data-section="${sectionIndex}">
-            <h2 class="section-title">${section.sectionTitle || `Section ${sectionIndex + 1}`}</h2>`;
+        const sectionKey = this.getSectionKey(section, sectionIndex);
+        const isExpanded = this.expandedSections[sectionKey] !== false;
+        const description =
+            section.sectionDescription ||
+            section.description ||
+            section.content?.description ||
+            '';
 
-        if (section.fields) {
+        let html = `
+            <div class="ufi-section-card ${isExpanded ? '' : 'collapsed'}" data-section-key="${sectionKey}">
+                <div class="ufi-section-header">
+                    <div class="ufi-section-meta">
+                        <div class="ufi-section-number">${sectionIndex + 1}</div>
+                        <div>
+                            <p class="ufi-section-title">${section.sectionTitle || `Section ${sectionIndex + 1}`}</p>
+                            ${description ? `<p class="ufi-section-description">${description}</p>` : ''}
+                        </div>
+                    </div>
+                    <button type="button" class="ufi-section-toggle ${isExpanded ? 'open' : ''}" data-section="${sectionKey}">
+                        ${isExpanded ? 'Hide' : 'Show'}
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="ufi-section-body">
+        `;
+
+        if (section.fields && section.fields.length > 0) {
             section.fields.forEach((field, fieldIndex) => {
                 html += this.generateFieldHTML(field, sectionIndex, fieldIndex);
             });
+        } else if (section.content && Array.isArray(section.content.fields)) {
+            section.content.fields.forEach((field, fieldIndex) => {
+                html += this.generateFieldHTML(field, sectionIndex, fieldIndex);
+            });
+        } else {
+            html += `<div class="info-field">This section does not define any fields in the JSON structure.</div>`;
         }
 
-        html += '</div>';
+        html += `
+                </div>
+            </div>
+        `;
+
         return html;
     }
 
@@ -488,6 +571,33 @@ class JSONFormRenderer {
                 `;
             });
         });
+
+        // Section toggles
+        const sectionToggles = document.querySelectorAll('.ufi-section-toggle');
+        sectionToggles.forEach(toggle => {
+            toggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                this.toggleSection(toggle.dataset.section);
+            });
+        });
+
+        const sectionHeaders = document.querySelectorAll('.ufi-section-header');
+        sectionHeaders.forEach(header => {
+            const card = header.closest('.ufi-section-card');
+            if (!card) return;
+            const key = card.dataset.sectionKey;
+            header.addEventListener('click', (event) => {
+                if (event.target.closest('.ufi-section-toggle')) return;
+                this.toggleSection(key);
+            });
+        });
+
+        // Disabled action buttons in preview
+        document.querySelectorAll('[data-action="preview-only"]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.showNotification('Actions are disabled in preview mode.', 'info');
+            });
+        });
     }
 
     updateFormValue(event) {
@@ -691,6 +801,54 @@ class JSONFormRenderer {
 
     closeValidationPanel() {
         document.getElementById('validationPanel').classList.remove('open');
+    }
+
+    initializeSectionState(jsonData) {
+        this.expandedSections = {};
+        if (!jsonData?.formStructure) return;
+        jsonData.formStructure.forEach((section, index) => {
+            const key = this.getSectionKey(section, index);
+            this.expandedSections[key] = true;
+        });
+    }
+
+    getSectionKey(section, index) {
+        return section?.section ? String(section.section) : `section_${index}`;
+    }
+
+    toggleSection(sectionKey) {
+        if (!sectionKey) return;
+        this.expandedSections[sectionKey] = !this.expandedSections[sectionKey];
+        this.refreshSectionDOM(sectionKey);
+    }
+
+    refreshSectionDOM(sectionKey) {
+        const card = document.querySelector(`[data-section-key="${sectionKey}"]`);
+        if (!card) return;
+        const isOpen = this.expandedSections[sectionKey];
+        card.classList.toggle('collapsed', !isOpen);
+
+        const toggleBtn = card.querySelector('.ufi-section-toggle');
+        if (toggleBtn) {
+            toggleBtn.classList.toggle('open', isOpen);
+            toggleBtn.innerHTML = `
+                ${isOpen ? 'Hide' : 'Show'}
+                <i class="fas fa-chevron-right"></i>
+            `;
+        }
+    }
+
+    toggleAllSections(forceExpand) {
+        if (!this.currentFormData?.formStructure) return;
+        this.currentFormData.formStructure.forEach((section, index) => {
+            const key = this.getSectionKey(section, index);
+            this.expandedSections[key] = forceExpand;
+            this.refreshSectionDOM(key);
+        });
+        const collapseBtn = document.getElementById('collapseAllSections');
+        if (collapseBtn) {
+            collapseBtn.dataset.state = forceExpand ? 'expanded' : 'collapsed';
+        }
     }
 
     exportFormData() {

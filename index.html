@@ -8,159 +8,162 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <h1><i class="fas fa-file-alt"></i> JSON Form Renderer</h1>
-                <p>Test and validate your JSON form structures</p>
-            </div>
-        </header>
+<body class="ufi-body">
+    <div class="workspace">
+        <aside class="builder-panel">
+            <div class="panel-card">
+                <div class="panel-card__header">
+                    <div>
+                        <p class="panel-eyebrow">Utilities</p>
+                        <h3>JSON Loader</h3>
+                    </div>
+                    <span class="badge badge--pill">Preview Mode</span>
+                </div>
+                <p class="panel-card__subtitle">
+                    Upload any exported form-definition JSON and see it rendered with the same layout as the production renderer.
+                </p>
+                <input type="file" id="jsonFileInput" accept=".json" class="file-input">
+                <label for="jsonFileInput" class="file-label ufi-dropzone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Choose JSON File</span>
+                </label>
 
-        <div class="main-content">
-            <aside class="sidebar">
-                <div class="json-loader">
-                    <h3><i class="fas fa-upload"></i> Load JSON Form</h3>
-                    <input type="file" id="jsonFileInput" accept=".json" class="file-input">
-                    <label for="jsonFileInput" class="file-label">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        Choose JSON File
-                    </label>
-                    
-                    <div class="quick-load">
-                        <h4>Quick Load Examples:</h4>
-                        <button class="example-btn" data-file="../SHB30221 Certificate III in Makeup/RPL Assessment - SHB30221 Certificate III in Makeup.json">
-                            <i class="fas fa-palette"></i> Makeup RPL Assessment
-                        </button>
-                        <button class="example-btn" data-file="../Certificate IV in Building and Construction/Candidate RPL Guide_Step 1&2_Certificate IV in Building and Construction(Builder)_V5.0_Feb 2024.docx (1).json">
-                            <i class="fas fa-building"></i> Building & Construction Guide
-                        </button>
-                        <button class="example-btn" data-file="../CPC31411 Cert 3 in Construction Waterproofing/RPL Marking Guide CPC31420_Certificate III in Waterproofing_V4.0_May 2022.json">
-                            <i class="fas fa-tint"></i> Waterproofing Marking Guide
-                        </button>
+                <div class="ufi-loader-actions">
+                    <button id="validateBtn" class="loader-action">
+                        <i class="fas fa-shield-alt"></i>
+                        Validate
+                    </button>
+                    <button id="exportBtn" class="loader-action">
+                        <i class="fas fa-download"></i>
+                        Export
+                    </button>
+                    <button id="fullscreenBtn" class="loader-action">
+                        <i class="fas fa-expand"></i>
+                        Fullscreen
+                    </button>
+                </div>
+
+                <div class="quick-load">
+                    <p class="panel-eyebrow">Examples</p>
+                    <button class="example-btn" data-file="../SHB30221 Certificate III in Makeup/RPL Assessment - SHB30221 Certificate III in Makeup.json">
+                        <i class="fas fa-palette"></i> Makeup RPL Assessment
+                    </button>
+                    <button class="example-btn" data-file="../Certificate IV in Building and Construction/Candidate RPL Guide_Step 1&2_Certificate IV in Building and Construction(Builder)_V5.0_Feb 2024.docx (1).json">
+                        <i class="fas fa-building"></i> Building & Construction Guide
+                    </button>
+                    <button class="example-btn" data-file="../CPC31411 Cert 3 in Construction Waterproofing/RPL Marking Guide CPC31420_Certificate III in Waterproofing_V4.0_May 2022.json">
+                        <i class="fas fa-tint"></i> Waterproofing Marking Guide
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-card" id="formInfo" style="display:none;">
+                <div class="panel-card__header">
+                    <div>
+                        <p class="panel-eyebrow">Meta</p>
+                        <h3>Form Details</h3>
+                    </div>
+                    <i class="fas fa-info-circle text-muted"></i>
+                </div>
+                <div class="info-grid">
+                    <div>
+                        <p class="label">Name</p>
+                        <p id="formName" class="value">-</p>
+                    </div>
+                    <div>
+                        <p class="label">Step</p>
+                        <p id="formStepNumber" class="value">-</p>
+                    </div>
+                    <div>
+                        <p class="label">Filled By</p>
+                        <p id="formFilledBy" class="value">-</p>
+                    </div>
+                    <div>
+                        <p class="label">Sections</p>
+                        <p id="totalSections" class="value">0</p>
+                    </div>
+                    <div>
+                        <p class="label">Fields</p>
+                        <p id="totalFields" class="value">0</p>
                     </div>
                 </div>
+                <p class="description" id="formDescription">-</p>
+            </div>
 
-                <div class="form-info" id="formInfo" style="display: none;">
-                    <h3><i class="fas fa-info-circle"></i> Form Information</h3>
-                    <div class="info-content">
-                        <div class="info-item">
-                            <strong>Name:</strong>
-                            <span id="formName">-</span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Description:</strong>
-                            <span id="formDescription">-</span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Step Number:</strong>
-                            <span id="formStepNumber">-</span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Filled By:</strong>
-                            <span id="formFilledBy">-</span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Total Sections:</strong>
-                            <span id="totalSections">0</span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Total Fields:</strong>
-                            <span id="totalFields">0</span>
-                        </div>
+            <div class="panel-card field-types">
+                <div class="panel-card__header">
+                    <div>
+                        <p class="panel-eyebrow">Legend</p>
+                        <h3>Field Types</h3>
                     </div>
+                    <i class="fas fa-swatchbook text-muted"></i>
                 </div>
+                <div class="legend-grid">
+                    <span class="legend-chip text">Text</span>
+                    <span class="legend-chip email">Email</span>
+                    <span class="legend-chip textarea">Textarea</span>
+                    <span class="legend-chip date">Date</span>
+                    <span class="legend-chip checkbox">Checkbox</span>
+                    <span class="legend-chip multipleCheckbox">Multi Checkbox</span>
+                    <span class="legend-chip dropdown">Dropdown</span>
+                    <span class="legend-chip radio">Radio</span>
+                    <span class="legend-chip table">Table</span>
+                    <span class="legend-chip info">Info</span>
+                </div>
+            </div>
+        </aside>
 
-                <div class="field-types-legend">
-                    <h3><i class="fas fa-key"></i> Field Types Legend</h3>
-                    <div class="legend-items">
-                        <div class="legend-item">
-                            <span class="legend-color text"></span>
-                            <span>Text Input</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color email"></span>
-                            <span>Email Input</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color textarea"></span>
-                            <span>Textarea</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color date"></span>
-                            <span>Date Input</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color signature"></span>
-                            <span>Signature</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color checkbox"></span>
-                            <span>Checkbox</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color multipleCheckbox"></span>
-                            <span>Multiple Choice</span>
-                        </div>
-                                    <div class="legend-item">
-                <span class="legend-color dropdown"></span>
-                <span>Dropdown</span>
+        <main class="preview-panel">
+            <div class="preview-header">
+                <div>
+                    <p class="panel-eyebrow">Preview</p>
+                    <h2>Universal Renderer Clone</h2>
+                    <p class="text-muted">Renders JSON with the same layout system used in the production React renderer.</p>
+                </div>
+                <div class="preview-header__actions">
+                    <button class="chip ghost" id="expandAllSections">
+                        <i class="fas fa-plus-square"></i>
+                        Expand all
+                    </button>
+                    <button class="chip ghost" id="collapseAllSections" data-state="expanded">
+                        <i class="fas fa-compress"></i>
+                        Collapse all
+                    </button>
+                </div>
             </div>
-            <div class="legend-item">
-                <span class="legend-color radio"></span>
-                <span>Radio Buttons</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-color table"></span>
-                <span>Table</span>
-            </div>
-                        <div class="legend-item">
-                            <span class="legend-color info"></span>
-                            <span>Information</span>
-                        </div>
+
+            <div class="preview-content">
+                <div class="preview-skeleton" id="welcomeMessage">
+                    <div class="skeleton-icon">
+                        <i class="fas fa-rocket"></i>
                     </div>
-                </div>
-            </aside>
-
-            <main class="form-container">
-                <div class="welcome-message" id="welcomeMessage">
-                    <div class="welcome-content">
-                        <i class="fas fa-rocket welcome-icon"></i>
-                        <h2>Welcome to JSON Form Renderer</h2>
-                        <p>Load a JSON form file to see it rendered as an interactive form.</p>
-                        <p>Use the file upload or quick load buttons on the left to get started.</p>
-                    </div>
+                    <h3>Bring your JSON to life</h3>
+                    <p>Use the loader panel to select a form definition. The preview on the right will mirror the production renderer’s spacing, typography, and section behavior.</p>
                 </div>
 
-                <div class="rendered-form" id="renderedForm" style="display: none;">
-                    <!-- Form will be rendered here -->
-                </div>
-            </main>
-        </div>
-
-        <div class="validation-panel" id="validationPanel" style="display: none;">
-            <div class="validation-header">
-                <h3><i class="fas fa-check-circle"></i> Validation Results</h3>
-                <button class="close-validation" id="closeValidation">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="rendered-form" id="renderedForm" style="display:none;"></div>
             </div>
-            <div class="validation-content" id="validationContent">
-                <!-- Validation results will appear here -->
-            </div>
-        </div>
+        </main>
     </div>
 
-    <div class="floating-actions">
-        <button class="action-btn validate-btn" id="validateBtn" title="Validate Form Structure">
-            <i class="fas fa-shield-alt"></i>
-        </button>
-        <button class="action-btn export-btn" id="exportBtn" title="Export Form Data">
-            <i class="fas fa-download"></i>
-        </button>
-        <button class="action-btn fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen">
-            <i class="fas fa-expand"></i>
-        </button>
+    <div class="validation-panel" id="validationPanel" style="display:none;">
+        <div class="validation-header">
+            <h3><i class="fas fa-check-circle"></i> Validation Results</h3>
+            <button class="close-validation" id="closeValidation">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="validation-content" id="validationContent"></div>
+    </div>
+
+    <div class="validation-panel" id="validationPanel" style="display:none;">
+        <div class="validation-header">
+            <h3><i class="fas fa-check-circle"></i> Validation Results</h3>
+            <button class="close-validation" id="closeValidation">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="validation-content" id="validationContent"></div>
     </div>
 
     <script src="script.js"></script>
