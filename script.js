@@ -173,10 +173,22 @@ class JSONFormRenderer {
                 <span class="field-type-badge ${field.fieldType}">${field.fieldType}</span>
             </label>`;
 
+        if (field.description) {
+            html += `<p class="field-description">${field.description}</p>`;
+        }
+
         switch (field.fieldType) {
             case 'text':
-                html += `<input type="text" id="${fieldId}" name="${field.fieldName}" class="form-input ${requiredClass}" 
+            case 'phone':
+            case 'tel':
+                html += `<input type="${field.fieldType === 'text' ? 'text' : 'tel'}" id="${fieldId}" name="${field.fieldName}" class="form-input ${requiredClass}" 
                     ${field.required ? 'required' : ''} 
+                    ${field.default ? `value="${field.default}"` : ''} />`;
+                break;
+
+            case 'number':
+                html += `<input type="number" id="${fieldId}" name="${field.fieldName}" class="form-input ${requiredClass}"
+                    ${field.required ? 'required' : ''}
                     ${field.default ? `value="${field.default}"` : ''} />`;
                 break;
 
@@ -245,6 +257,7 @@ class JSONFormRenderer {
                 break;
 
             case 'dropdown':
+            case 'select':
                 html += `<select id="${fieldId}" name="${field.fieldName}" class="form-select ${requiredClass}" 
                     ${field.required ? 'required' : ''}>`;
                 
@@ -335,9 +348,110 @@ class JSONFormRenderer {
                 html = `<div class="form-field info" data-field-type="info" style="--field-index: ${fieldIndex}">
                     <div class="info-field">
                         <i class="fas fa-info-circle" style="margin-right: 0.5rem; color: var(--primary-color);"></i>
-                        ${field.label || field.fieldName || 'Information field'}
+                        ${(field.label || field.fieldName || 'Information field')}
+                        ${field.text ? `<p class="field-description">${field.text}</p>` : ''}
                     </div>
                 </div>`;
+                break;
+
+            case 'label':
+                html = `<div class="form-field label" data-field-type="label" style="--field-index: ${fieldIndex}">
+                    <div class="label-field">
+                        <i class="fas fa-tag" style="margin-right: 0.5rem; color: var(--text-muted);"></i>
+                        ${(field.label || field.fieldName || 'Label field')}
+                        ${field.text ? `<p class="field-description">${field.text}</p>` : ''}
+                    </div>
+                </div>`;
+                break;
+
+            case 'assessmentMatrix':
+                if (Array.isArray(field.questions) && field.questions.length > 0) {
+                    html += `<div class="assessment-matrix">`;
+                    field.questions.forEach((question, qIndex) => {
+                        const questionId = question.questionId || qIndex;
+                        const questionKey = `${field.fieldName}_${questionId}`;
+                        const options = question.options && question.options.length > 0
+                            ? question.options
+                            : ['Never', 'Sometimes', 'Regularly'];
+
+                        html += `<div class="matrix-question">
+                            <p class="matrix-question-text">${question.question || `Question ${qIndex + 1}`}</p>
+                            <div class="matrix-options">`;
+
+                        options.forEach((option, optIndex) => {
+                            const optionId = `${questionKey}_${optIndex}`;
+                            html += `<label for="${optionId}" class="matrix-option">
+                                <input type="radio" id="${optionId}" name="${questionKey}" value="${option}" class="radio-input" />
+                                <span>${option}</span>
+                            </label>`;
+                        });
+
+                        html += `</div></div>`;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `<div class="matrix-placeholder">No questions configured for this assessment matrix.</div>`;
+                }
+                break;
+
+            case 'checkbox-matrix':
+            case 'checkboxMatrix':
+                if (Array.isArray(field.units) && field.units.length > 0) {
+                    html += `<div class="matrix-table-wrapper">
+                        <table class="form-table matrix-table">
+                            <thead>
+                                <tr>
+                                    <th>${field.label || 'Evidence Type'}</th>`;
+                    field.units.forEach(unit => {
+                        html += `<th>${unit}</th>`;
+                    });
+                    html += `</tr></thead><tbody>
+                        <tr>
+                            <td>
+                                <div class="matrix-label">
+                                    <strong>${field.label || 'Evidence Type'}</strong>
+                                    ${field.description ? `<p class="field-description">${field.description}</p>` : ''}
+                                </div>
+                            </td>`;
+                    field.units.forEach((unit, unitIndex) => {
+                        const checkboxKey = `${field.fieldName}_${unit}`;
+                        const optionId = `${fieldId}_matrix_${unitIndex}`;
+                        html += `<td>
+                            <input type="checkbox" id="${optionId}" name="${checkboxKey}" class="checkbox-input matrix-checkbox" data-matrix-parent="${field.fieldName}" value="true" />
+                            <label for="${optionId}" class="sr-only">${unit}</label>
+                        </td>`;
+                    });
+                    html += `</tr></tbody></table></div>`;
+                } else {
+                    html += `<div class="matrix-placeholder">Matrix configuration missing units.</div>`;
+                }
+                break;
+
+            case 'rating-matrix':
+            case 'ratingMatrix':
+                if (Array.isArray(field.questions) && field.questions.length > 0) {
+                    const options = Array.isArray(field.options) && field.options.length > 0
+                        ? field.options
+                        : ['Never', 'Sometimes', 'Regularly'];
+                    html += `<div class="rating-matrix">`;
+                    field.questions.forEach((question, qIndex) => {
+                        const questionKey = `${field.fieldName}_question_${qIndex}`;
+                        html += `<div class="rating-matrix-row">
+                            <p>${qIndex + 1}. ${question}</p>
+                            <div class="rating-options">`;
+                        options.forEach((option, optIndex) => {
+                            const optionId = `${questionKey}_${optIndex}`;
+                            html += `<label class="matrix-option" for="${optionId}">
+                                <input type="radio" id="${optionId}" name="${questionKey}" value="${option}" class="radio-input" />
+                                <span>${option}</span>
+                            </label>`;
+                        });
+                        html += `</div></div>`;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `<div class="matrix-placeholder">Rating matrix lacks configured questions.</div>`;
+                }
                 break;
 
             default:
@@ -356,7 +470,7 @@ class JSONFormRenderer {
 
     setupFormInteractions() {
         // Add change listeners to all form inputs
-        const formInputs = document.querySelectorAll('.form-input, .form-textarea, .checkbox-input, .radio-input, .table-input');
+        const formInputs = document.querySelectorAll('.form-input, .form-textarea, .form-select, .checkbox-input, .radio-input, .table-input');
         formInputs.forEach(input => {
             input.addEventListener('change', (e) => this.updateFormValue(e));
             input.addEventListener('input', (e) => this.updateFormValue(e));
@@ -381,6 +495,10 @@ class JSONFormRenderer {
         const fieldName = input.name;
         
         if (input.type === 'checkbox') {
+            if (input.dataset.matrixParent) {
+                this.formValues[fieldName] = input.checked;
+                return;
+            }
             if (!this.formValues[fieldName]) {
                 this.formValues[fieldName] = [];
             }
